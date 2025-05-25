@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Products Management - Liquor Store{% endblock %}
+
+{% block content %}
+<!-- Previous HTML content remains unchanged -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    // Filter function
+    function filterTable() {
+        var search = document.getElementById('search-input').value.toLowerCase();
+        var category = document.getElementById('category-filter').value;
+        var stock = document.getElementById('stock-filter').value;
+        var rows = document.getElementById('products-table-body').getElementsByTagName('tr');
+
+        Array.prototype.forEach.call(rows, function(row) {
+            var nameCell = row.querySelector('.text-gray-900');
+            var stockCell = row.querySelector('td:nth-child(4) span');
+            
+            if (!nameCell || !stockCell) return;
+            
+            var name = nameCell.textContent.toLowerCase();
+            var stockText = stockCell.textContent;
+            var visible = true;
+
+            if (search && !name.includes(search)) visible = false;
+            if (category && row.getAttribute('data-category-id') !== category) visible = false;
+            if (stock === 'in_stock' && !stockText.includes('In Stock')) visible = false;
+            if (stock === 'low_stock' && !stockText.includes('Low Stock')) visible = false;
+            if (stock === 'out_of_stock' && !stockText.includes('Out of Stock')) visible = false;
+
+            row.style.display = visible ? '' : 'none';
+        });
+    }
+
+    // Delete function
+    window.deleteProduct = function(id) {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/dashboard/products/delete/' + id + '/');
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                window.location.reload();
+            } else {
+                alert('Error deleting product');
+            }
+        };
+        
+        xhr.onerror = function() {
+            alert('Error deleting product');
+        };
+        
+        xhr.send();
+    };
+
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        var searchInput = document.getElementById('search-input');
+        var categoryFilter = document.getElementById('category-filter');
+        var stockFilter = document.getElementById('stock-filter');
+
+        if (searchInput) searchInput.addEventListener('input', filterTable);
+        if (categoryFilter) categoryFilter.addEventListener('change', filterTable);
+        if (stockFilter) stockFilter.addEventListener('change', filterTable);
+    });
+})();
+</script>
+{% endblock %}
