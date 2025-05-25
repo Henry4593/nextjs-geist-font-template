@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Liquor Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Sidebar Filters -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold mb-4">Filters</h2>
+                
+                <!-- Categories -->
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Categories</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'products:product_list' %}" 
+                           class="block text-gray-600 hover:text-black {% if not category %}font-semibold{% endif %}">
+                            All Products
+                        </a>
+                        {% for cat in categories %}
+                        <a href="{% url 'products:product_list_by_category' cat.slug %}" 
+                           class="block text-gray-600 hover:text-black {% if category.id == cat.id %}font-semibold{% endif %}">
+                            {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Price Range -->
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Price Range</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-sm text-gray-600">Min Price ($)</label>
+                            <input type="number" 
+                                   id="min-price" 
+                                   value="{{ min_price|default:'' }}"
+                                   class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">Max Price ($)</label>
+                            <input type="number" 
+                                   id="max-price" 
+                                   value="{{ max_price|default:'' }}"
+                                   class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sort By -->
+                <div class="mb-6">
+                    <h3 class="font-medium mb-2">Sort By</h3>
+                    <select id="sort-by" 
+                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200">
+                        <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Newest</option>
+                        <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                        <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Rating</option>
+                    </select>
+                </div>
+
+                <!-- Apply Filters Button -->
+                <button id="apply-filters" 
+                        class="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="flex-1">
+            <!-- Search and Results Info -->
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+                <div class="mb-4 sm:mb-0">
+                    {% if category %}
+                        <h1 class="text-2xl font-bold">{{ category.name }}</h1>
+                    {% else %}
+                        <h1 class="text-2xl font-bold">All Products</h1>
+                    {% endif %}
+                    <p class="text-gray-600">{{ products.paginator.count }} products found</p>
+                </div>
+                <div class="w-full sm:w-64">
+                    <input type="text" 
+                           id="search" 
+                           placeholder="Search products..." 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200">
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                {% for product in products %}
+                <div class="group">
+                    <div class="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden bg-gray-100">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" 
+                                 alt="{{ product.name }}" 
+                                 class="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                <i class="fas fa-wine-bottle text-4xl text-gray-400"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium">
+                            <a href="{% url 'products:product_detail' product.id %}" class="hover:underline">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+                        {% if product.brand %}
+                            <p class="text-gray-500">{{ product.brand }}</p>
+                        {% endif %}
+                        <div class="mt-2 flex justify-between items-center">
+                            <span class="text-xl font-bold">{{ product.formatted_price }}</span>
+                            <button class="add-to-cart bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors"
+                                    data-product-id="{{ product.id }}">
+                                Add to Cart
+                            </button>
+                        </div>
+                        {% if product.rating %}
+                            <div class="mt-2 flex items-center">
+                                <div class="flex text-yellow-400">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= product.rating|floatformat:"0" %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-gray-600">{{ product.rating|floatformat:1 }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-wine-bottle text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600">No products found.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if products.paginator.num_pages > 1 %}
+            <div class="mt-8 flex justify-center">
+                <div class="flex space-x-2">
+                    {% if products.has_previous %}
+                        <a href="?page={{ products.previous_page_number }}" 
+                           class="px-4 py-2 border rounded hover:bg-gray-100 transition-colors">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in products.paginator.page_range %}
+                        {% if num == products.number %}
+                            <span class="px-4 py-2 border rounded bg-black text-white">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}" 
+                               class="px-4 py-2 border rounded hover:bg-gray-100 transition-colors">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}" 
+                           class="px-4 py-2 border rounded hover:bg-gray-100 transition-colors">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter functionality
+    document.getElementById('apply-filters').addEventListener('click', function() {
+        const minPrice = document.getElementById('min-price').value;
+        const maxPrice = document.getElementById('max-price').value;
+        const sortBy = document.getElementById('sort-by').value;
+        
+        let url = new URL(window.location.href);
+        if (minPrice) url.searchParams.set('min_price', minPrice);
+        if (maxPrice) url.searchParams.set('max_price', maxPrice);
+        if (sortBy) url.searchParams.set('sort', sortBy);
+        
+        window.location.href = url.toString();
+    });
+
+    // Search functionality with debounce
+    let searchTimeout;
+    document.getElementById('search').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        const query = e.target.value;
+        
+        searchTimeout = setTimeout(() => {
+            if (query.length >= 2) {
+                fetch(`/products/api/search/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateProductsGrid(data.results);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }, 300);
+    });
+
+    // Update products grid
+    function updateProductsGrid(products) {
+        const grid = document.getElementById('products-grid');
+        grid.innerHTML = '';
+        
+        if (products.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-wine-bottle text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600">No products found.</p>
+                </div>
+            `;
+            return;
+        }
+
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'group';
+            productCard.innerHTML = `
+                <div class="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden bg-gray-100">
+                    ${product.image_url ? 
+                        `<img src="${product.image_url}" 
+                              alt="${product.name}" 
+                              class="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity">` :
+                        `<div class="w-full h-full flex items-center justify-center bg-gray-200">
+                            <i class="fas fa-wine-bottle text-4xl text-gray-400"></i>
+                         </div>`
+                    }
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium">
+                        <a href="/products/${product.id}/" class="hover:underline">
+                            ${product.name}
+                        </a>
+                    </h3>
+                    ${product.brand ? `<p class="text-gray-500">${product.brand}</p>` : ''}
+                    <div class="mt-2 flex justify-between items-center">
+                        <span class="text-xl font-bold">${product.formatted_price}</span>
+                        <button class="add-to-cart bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors"
+                                data-product-id="${product.id}">
+                            Add to Cart
+                        </button>
+                    </div>
+                    ${product.rating ? `
+                        <div class="mt-2 flex items-center">
+                            <div class="flex text-yellow-400">
+                                ${Array(5).fill(0).map((_, i) => 
+                                    i < Math.round(product.rating) ? 
+                                        '<i class="fas fa-star"></i>' : 
+                                        '<i class="far fa-star"></i>'
+                                ).join('')}
+                            </div>
+                            <span class="ml-2 text-gray-600">${product.rating.toFixed(1)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            grid.appendChild(productCard);
+        });
+    }
+
+    // Add to cart functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-to-cart')) {
+            const productId = e.target.dataset.productId;
+            // Here you would typically send an AJAX request to add the item to cart
+            // For now, we'll just show an alert
+            alert(`Product ${productId} added to cart!`);
+        }
+    });
+</script>
+{% endblock %}
