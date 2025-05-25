@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmation - Liquor Store{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center">
+        <!-- Success Icon -->
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-6">
+            <i class="fas fa-check text-2xl text-green-600"></i>
+        </div>
+
+        <h1 class="text-3xl font-bold mb-4">Thank You for Your Order!</h1>
+        <p class="text-gray-600 mb-8">
+            Your order has been successfully placed and is being processed.
+            We'll send you an email confirmation with your order details shortly.
+        </p>
+
+        <!-- Order Details Card -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Order Details</h2>
+                <span class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                    Processing
+                </span>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="text-left">
+                        <p class="text-gray-600">Order Number:</p>
+                        <p class="font-medium">{{ order.id }}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-600">Order Date:</p>
+                        <p class="font-medium">{{ order.created_at|date:"F j, Y" }}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-600">Payment Method:</p>
+                        <p class="font-medium">Credit Card</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-gray-600">Total Amount:</p>
+                        <p class="font-medium">${{ order.total }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold mb-4">What's Next?</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black text-white mb-3">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="font-medium mb-2">Order Confirmation</h4>
+                    <p class="text-sm text-gray-600">
+                        You'll receive an email confirmation with your order details.
+                    </p>
+                </div>
+                <div>
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black text-white mb-3">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h4 class="font-medium mb-2">Order Processing</h4>
+                    <p class="text-sm text-gray-600">
+                        We'll start processing your order and prepare it for shipping.
+                    </p>
+                </div>
+                <div>
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black text-white mb-3">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h4 class="font-medium mb-2">Shipping Updates</h4>
+                    <p class="text-sm text-gray-600">
+                        You'll receive shipping updates once your order is on its way.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            <a href="{% url 'users:order_history' %}" 
+               class="inline-block bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+                View Order History
+            </a>
+            <div>
+                <a href="{% url 'products:product_list' %}" 
+                   class="inline-block text-black hover:text-gray-800">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+
+        <!-- Customer Support -->
+        <div class="mt-12 text-center">
+            <h3 class="text-lg font-semibold mb-2">Need Help?</h3>
+            <p class="text-gray-600 mb-4">
+                Our customer service team is here to assist you.
+            </p>
+            <div class="space-x-4">
+                <a href="#" class="text-black hover:text-gray-800">
+                    <i class="fas fa-phone-alt mr-2"></i>
+                    Contact Support
+                </a>
+                <span class="text-gray-300">|</span>
+                <a href="#" class="text-black hover:text-gray-800">
+                    <i class="fas fa-question-circle mr-2"></i>
+                    FAQs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Clear cart data from local storage if any
+    localStorage.removeItem('cart');
+
+    // Confetti effect on page load
+    function createConfetti() {
+        const colors = ['#000000', '#ffffff', '#cccccc'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            document.body.appendChild(confetti);
+        }
+    }
+
+    // Add confetti styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            animation: confetti 3s ease-in-out infinite;
+        }
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Create confetti on page load
+    window.addEventListener('load', createConfetti);
+</script>
+{% endblock %}
+
+{% endblock %}
