@@ -1,0 +1,18 @@
+# Python dependencies for the Liquor Store project
+# Core dependencies
+Django==5.2.1
+
+# Production dependencies
+gunicorn==20.1.0  # For serving the application
+whitenoise==6.4.0  # For serving static files in production
+
+# Development dependencies
+django-debug-toolbar==4.2.0  # For debugging during development
+
+# Database
+sqlparse==0.4.4  # SQL parsing and formatting (required by Django)
+asgiref==3.7.2   # ASGI specs (required by Django)
+
+# Security
+django-cors-headers==4.3.1  # Handle CORS in development and production
+python-dotenv==1.0.0  # For managing environment variables
