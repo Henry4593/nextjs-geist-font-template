@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Liquor Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="text-gray-700 hover:text-black">
+                    <i class="fas fa-home mr-2"></i>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <a href="{% url 'products:product_list' %}" class="text-gray-700 hover:text-black">Products</a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-gray-500">{{ product.name }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Product Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Product Image -->
+        <div class="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden bg-gray-100">
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}" 
+                     alt="{{ product.name }}" 
+                     class="w-full h-full object-center object-cover">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                    <i class="fas fa-wine-bottle text-6xl text-gray-400"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Info -->
+        <div>
+            <h1 class="text-3xl font-bold mb-2">{{ product.name }}</h1>
+            {% if product.brand %}
+                <p class="text-xl text-gray-600 mb-4">{{ product.brand }}</p>
+            {% endif %}
+
+            <!-- Price and Stock -->
+            <div class="mb-6">
+                <span class="text-3xl font-bold">{{ product.formatted_price }}</span>
+                {% if product.is_in_stock %}
+                    <span class="ml-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        In Stock
+                    </span>
+                {% else %}
+                    <span class="ml-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                        Out of Stock
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Rating -->
+            {% if product.rating %}
+                <div class="flex items-center mb-6">
+                    <div class="flex text-yellow-400">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= product.rating|floatformat:"0" %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="ml-2 text-gray-600">{{ product.rating|floatformat:1 }} rating</span>
+                </div>
+            {% endif %}
+
+            <!-- Product Details -->
+            <div class="space-y-4 mb-8">
+                {% if product.description %}
+                    <p class="text-gray-600">{{ product.description }}</p>
+                {% endif %}
+
+                <div class="grid grid-cols-2 gap-4">
+                    {% if product.alcohol_content %}
+                        <div>
+                            <span class="text-gray-600">Alcohol Content:</span>
+                            <span class="ml-2 font-medium">{{ product.alcohol_content }}%</span>
+                        </div>
+                    {% endif %}
+                    {% if product.volume %}
+                        <div>
+                            <span class="text-gray-600">Volume:</span>
+                            <span class="ml-2 font-medium">{{ product.volume }}ml</span>
+                        </div>
+                    {% endif %}
+                    {% if product.country_of_origin %}
+                        <div>
+                            <span class="text-gray-600">Origin:</span>
+                            <span class="ml-2 font-medium">{{ product.country_of_origin }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Add to Cart -->
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-24">
+                    <label for="quantity" class="sr-only">Quantity</label>
+                    <input type="number" 
+                           id="quantity" 
+                           min="1" 
+                           value="1" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200">
+                </div>
+                <button id="add-to-cart" 
+                        class="flex-1 bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors {% if not product.is_in_stock %}opacity-50 cursor-not-allowed{% endif %}"
+                        {% if not product.is_in_stock %}disabled{% endif %}
+                        data-product-id="{{ product.id }}">
+                    {% if product.is_in_stock %}
+                        Add to Cart
+                    {% else %}
+                        Out of Stock
+                    {% endif %}
+                </button>
+            </div>
+
+            <!-- Additional Info Accordion -->
+            <div class="border-t border-gray-200 pt-6">
+                <div class="space-y-4">
+                    <!-- Shipping Info -->
+                    <div class="border-b border-gray-200">
+                        <button class="accordion-button w-full flex justify-between items-center py-4 focus:outline-none">
+                            <span class="text-lg font-medium">Shipping Information</span>
+                            <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="accordion-content hidden pb-4">
+                            <p class="text-gray-600">Free shipping on orders over $100. Standard delivery within 3-5 business days.</p>
+                        </div>
+                    </div>
+                    <!-- Return Policy -->
+                    <div class="border-b border-gray-200">
+                        <button class="accordion-button w-full flex justify-between items-center py-4 focus:outline-none">
+                            <span class="text-lg font-medium">Return Policy</span>
+                            <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="accordion-content hidden pb-4">
+                            <p class="text-gray-600">Returns accepted within 30 days of delivery for unopened items.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold mb-6">Related Products</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <div class="group">
+                <div class="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden bg-gray-100">
+                    {% if related.image_url %}
+                        <img src="{{ related.image_url }}" 
+                             alt="{{ related.name }}" 
+                             class="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                            <i class="fas fa-wine-bottle text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-medium">
+                        <a href="{% url 'products:product_detail' related.id %}" class="hover:underline">
+                            {{ related.name }}
+                        </a>
+                    </h3>
+                    <p class="text-xl font-bold mt-2">{{ related.formatted_price }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Accordion functionality
+    document.querySelectorAll('.accordion-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('i');
+            
+            content.classList.toggle('hidden');
+            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+    });
+
+    // Add to cart functionality
+    document.getElementById('add-to-cart').addEventListener('click', function(e) {
+        if (this.disabled) return;
+
+        const productId = this.dataset.productId;
+        const quantity = document.getElementById('quantity').value;
+
+        // Here you would typically send an AJAX request to add the item to cart
+        // For now, we'll just show an alert
+        alert(`Added ${quantity} item(s) of product ${productId} to cart!`);
+    });
+</script>
+{% endblock %}
