@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - Liquor Store{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="text-gray-700 hover:text-black">
+                    <i class="fas fa-home mr-2"></i>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <a href="{% url 'users:order_history' %}" class="text-gray-700 hover:text-black">Orders</a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-gray-500">Order #{{ order.id }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    {% if error %}
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-red-700">{{ error }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Order Details -->
+        <div class="flex-1">
+            <!-- Order Status Card -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-bold mb-2">Order #{{ order.id }}</h1>
+                        <p class="text-gray-600">Placed on {{ order.created_at|date:"F j, Y" }}</p>
+                    </div>
+                    <span class="px-4 py-2 rounded-full text-sm font-medium
+                        {% if order.status == 'completed' %}bg-green-100 text-green-800
+                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ order.status|title }}
+                    </span>
+                </div>
+
+                {% if order.tracking_number %}
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-medium mb-2">Tracking Information</h3>
+                    <p class="text-gray-600">Tracking Number: {{ order.tracking_number }}</p>
+                    <a href="#" class="text-black hover:text-gray-800 mt-2 inline-block">
+                        Track Package →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Order Items -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-4">Order Items</h2>
+                </div>
+                <div class="border-t border-gray-200">
+                    {% for item in order.items %}
+                    <div class="p-6 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-24 h-24">
+                                {% if item.product.image_url %}
+                                    <img src="{{ item.product.image_url }}" 
+                                         alt="{{ item.product.name }}" 
+                                         class="w-full h-full object-center object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
+                                        <i class="fas fa-wine-bottle text-gray-400 text-2xl"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-6 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-medium">
+                                            <a href="{% url 'products:product_detail' item.product_id %}" 
+                                               class="hover:underline">
+                                                {{ item.product.name }}
+                                            </a>
+                                        </h3>
+                                        <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-lg font-medium">${{ item.subtotal }}</p>
+                                        <p class="text-sm text-gray-600">${{ item.price }} each</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="w-full lg:w-96">
+            <!-- Summary Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold mb-4">Order Summary</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span>${{ order.subtotal }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax</span>
+                        <span>${{ order.tax }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping</span>
+                        <span>${{ order.shipping_cost }}</span>
+                    </div>
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between font-semibold">
+                            <span>Total</span>
+                            <span>${{ order.total }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="bg-white rounded-lg shadow p-6 mt-6">
+                <h2 class="text-lg font-semibold mb-4">Shipping Information</h2>
+                <div class="text-gray-600">
+                    <p>{{ order.shipping_address.street_address }}</p>
+                    {% if order.shipping_address.apartment %}
+                        <p>{{ order.shipping_address.apartment }}</p>
+                    {% endif %}
+                    <p>{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}</p>
+                    <p>{{ order.shipping_address.country }}</p>
+                </div>
+            </div>
+
+            <!-- Need Help? -->
+            <div class="bg-gray-50 rounded-lg p-6 mt-6">
+                <h3 class="font-medium mb-4">Need Help?</h3>
+                <div class="space-y-3">
+                    <a href="#" class="flex items-center text-black hover:text-gray-800">
+                        <i class="fas fa-question-circle w-5"></i>
+                        <span class="ml-2">Order Support</span>
+                    </a>
+                    <a href="#" class="flex items-center text-black hover:text-gray-800">
+                        <i class="fas fa-exchange-alt w-5"></i>
+                        <span class="ml-2">Returns & Refunds</span>
+                    </a>
+                    <a href="#" class="flex items-center text-black hover:text-gray-800">
+                        <i class="fas fa-phone w-5"></i>
+                        <span class="ml-2">Contact Us</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-4 mt-6">
+                <a href="{% url 'users:order_history' %}" 
+                   class="block w-full text-center bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+                    Back to Orders
+                </a>
+                {% if order.status != 'cancelled' %}
+                <button onclick="confirmCancelOrder()" 
+                        class="block w-full text-center border-2 border-black text-black px-6 py-3 rounded-lg font-semibold hover:bg-black hover:text-white transition-colors">
+                    Cancel Order
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function confirmCancelOrder() {
+        if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+            // Here you would typically send an AJAX request to cancel the order
+            alert('Order cancellation functionality will be implemented.');
+        }
+    }
+</script>
+{% endblock %}
+
+{% endblock %}
